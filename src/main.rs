@@ -54,8 +54,8 @@ fn main() -> std::io::Result<()> {
             }
         };
 
-        let mut buf = Vec::new();
-        let mut xor = Vec::new();
+        let mut buf: Vec<u8> = Vec::new();
+        let mut xor: Vec<u8> = Vec::new();
 
         file.read_to_end(&mut buf)?;
 
