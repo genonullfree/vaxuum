@@ -13,19 +13,26 @@ fn devax(input: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {
 
     let mut mode: u8 = 0;
     let mut num: usize = 0;
+    let mut size: u8 = 0;
     let zero: u8 = 0;
 
     for i in input.iter(){
         if i == &zero {
-            mode = (mode + 1) % 2;
             continue;
         }
 
         if mode == 0 {
             num += *i as usize;
-            println!("grabbing chunk of {}", i);
+            size = *i;
+            println!("grabbing chunk of {}", size);
+            mode = 1;
         } else if mode == 1 {
             clean.push(*i);
+            if size > 0 {size -= 1};
+            if size == zero {
+                mode = 0;
+                clean.push(b'\n');
+            }
         }
     }
     if clean.len() == num {
