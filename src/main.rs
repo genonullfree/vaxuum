@@ -9,11 +9,25 @@ fn help() {
 }
 
 fn devax(input: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {
-    let clean = Vec::new();
+    let mut clean = Vec::new();
+
+    let mut mode: u8 = 0;
+    let mut num:  u8 = 0;
+    let zero: u8 = 0;
 
     for i in input.iter(){
-        println!("{}", i);
+        if i == &zero {
+            mode = (mode + 1) % 2;
+            continue;
+        }
+
+        if mode == 0 {
+            num = *i;
+        } else if mode == 1 {
+            clean.push(*i);
+        }
     }
+
     Ok(clean)
 }
 fn main() -> std::io::Result<()> {
@@ -59,11 +73,10 @@ fn main() -> std::io::Result<()> {
         };
 
         let mut buf: Vec<u8> = Vec::new();
-        let mut xor: Vec<u8> = Vec::new();
 
         file.read_to_end(&mut buf)?;
 
-        let mut xor = devax(buf)?;
+        let xor = devax(buf)?;
 
 /*
         for i in 0..buf.len() {
