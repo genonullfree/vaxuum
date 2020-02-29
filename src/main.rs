@@ -10,6 +10,10 @@ fn help() {
 
 fn devax(input: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {
     let clean = Vec::new();
+
+    for i in input.iter(){
+        println!("{}", i);
+    }
     Ok(clean)
 }
 fn main() -> std::io::Result<()> {
@@ -59,12 +63,13 @@ fn main() -> std::io::Result<()> {
 
         file.read_to_end(&mut buf)?;
 
-        let mut xor = devax(xor)?;
+        let mut xor = devax(buf)?;
 
+/*
         for i in 0..buf.len() {
             xor.push(buf[i] ^ 0xff);
         }
-
+*/
         out.write_all(&xor)?;
         out.flush()?;
 
