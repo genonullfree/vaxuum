@@ -8,6 +8,10 @@ fn help() {
     println!("usage: cargo run <file> [file] [file] ...");
 }
 
+fn devax(input: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {
+    let clean = Vec::new();
+    Ok(clean)
+}
 fn main() -> std::io::Result<()> {
     let mut args: Vec<String> = env::args().collect();
     let mut input: Vec<String> = Vec::new();
@@ -23,11 +27,11 @@ fn main() -> std::io::Result<()> {
 
     while input.len() > 0 {
         let filename = input.pop().unwrap();
-        print!("Inverting {}...", filename);
+        print!("Cleaning up {}...", filename);
 
         let mut output = String::new();
         output.push_str(&filename);
-        output.push_str(".inv");
+        output.push_str(".clean");
 
         let mut file = match File::open(filename) {
             Ok(file) => file,
@@ -54,6 +58,8 @@ fn main() -> std::io::Result<()> {
         let mut xor = Vec::new();
 
         file.read_to_end(&mut buf)?;
+
+        let mut xor = devax(xor)?;
 
         for i in 0..buf.len() {
             xor.push(buf[i] ^ 0xff);
