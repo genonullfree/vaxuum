@@ -46,7 +46,7 @@ fn devax(input: Vec<u8>) -> Result<Vec<u8>, VaxError> {
     let zero: u8 = 0;
 
     /* iterate through each byte of the original file */
-    for i in input.iter(){
+    for i in input.iter() {
         /* if a null is encountered, ignore */
         /* TODO: fix this to handle 16bit little endian values */
         if i == &zero {
