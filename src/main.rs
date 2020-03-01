@@ -24,7 +24,6 @@ fn devax(input: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {
         if mode == 0 {
             num += *i as usize;
             size = *i;
-            println!("grabbing chunk of {}", size);
             mode = 1;
         } else if mode == 1 {
             clean.push(*i);
@@ -32,6 +31,7 @@ fn devax(input: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {
             if size == zero {
                 mode = 0;
                 clean.push(b'\n');
+                num += 1;
             }
         }
     }
