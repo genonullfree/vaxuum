@@ -4,10 +4,12 @@ use std::fs::File;
 use std::io::Write;
 use std::io::Read;
 
+/* print the usage */
 fn help() {
     println!("usage: cargo run <file> [file] [file] ...");
 }
 
+/* function to read in the original file and generate the correct file output */
 fn devax(input: Vec<u8>) -> Vec<u8> {
     let mut clean = Vec::new();
     let mut mode: u8 = 0;
@@ -15,16 +17,28 @@ fn devax(input: Vec<u8>) -> Vec<u8> {
     let mut size: u8 = 0;
     let zero: u8 = 0;
 
+    /* iterate through each byte of the original file */
     for i in input.iter(){
+        /* if a null is encountered, ignore */
+        /* TODO: fix this to handle 16bit little endian values */
         if i == &zero {
             continue;
-        } else if mode == 0 {
+        }
+        /* if the mode is 0, treat as reading in a single number */
+        else if mode == 0 {
             num += *i as usize;
             size = *i;
             mode = 1;
-        } else if mode == 1 {
+        }
+        /* if the mode is 1, treat as reading in that number of bytes */
+        else if mode == 1 {
             clean.push(*i);
+
+            /* decrement size of byte-munching */
             if size > 0 {size -= 1};
+
+            /* if size gets decremented to 0, push a newline and increment total
+                number of bytes */
             if size == zero {
                 mode = 0;
                 clean.push(b'\n');
@@ -32,37 +46,48 @@ fn devax(input: Vec<u8>) -> Vec<u8> {
             }
         }
     }
+
+    /* if the bytes written equal the same number of bytes that we believe should
+        be written, then the vaxuum-ing was a success, else a failure */
     if clean.len() == num {
         println!("file OK!");
     } else {
+        /* if the conversion failed, empty the new file buffer */
         println!("something went wrong!");
         clean.clear();
         clean.truncate(0);
     }
 
+    /* return the new file buffer */
     clean
 }
 fn main() -> std::io::Result<()> {
     let mut args: Vec<String> = env::args().collect();
     let mut input: Vec<String> = Vec::new();
 
+    /* this program requires at least 2 arguments */
     if args.len() < 2 {
         help();
         std::process::exit(1);
     }
 
+    /* put the arguments into an input vector */
     while args.len() > 1 {
         input.push(args.pop().unwrap());
     }
 
+    /* for each file in the command line arguments ... */
     while input.len() > 0 {
+        /* read the file name */
         let filename = input.pop().unwrap();
         print!("Cleaning up {}...", filename);
 
+        /* create the vaxuum-ed "*.clean" file name */
         let mut output = String::new();
         output.push_str(&filename);
         output.push_str(".clean");
 
+        /* attempt to open the original file */
         let mut file = match File::open(filename) {
             Ok(file) => file,
             Err(e)   => {
@@ -74,8 +99,8 @@ fn main() -> std::io::Result<()> {
             }
         };
 
+        /* read in the original file as u8's */
         let mut buf: Vec<u8> = Vec::new();
-
         file.read_to_end(&mut buf)?;
 
         /* run the de-vax-ify function */
@@ -83,6 +108,7 @@ fn main() -> std::io::Result<()> {
 
         /* write out the de-vax-ified vector to file */
         if xor.is_empty() != true {
+            /* attempt to open the new cleaned file */
             let mut out = match File::create(&output) {
                 Ok(out) => out,
                 Err(e)  => {
@@ -94,9 +120,11 @@ fn main() -> std::io::Result<()> {
                 }
             };
 
+            /* write out the clean version of the file */
             out.write_all(&xor)?;
             out.flush()?;
         }
     }
+
     Ok(())
 }
