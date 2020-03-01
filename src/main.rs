@@ -1,32 +1,34 @@
 use std::env;
-use std::io::ErrorKind::*;
 use std::fs::File;
-use std::io::Write;
+use std::io::ErrorKind::*;
 use std::io::Read;
+use std::io::Write;
 
 use std::error::Error;
 use std::fmt;
 
 #[derive(Debug)]
 struct VaxError {
-    details: String
+    details: String,
 }
 
 impl VaxError {
     fn new(msg: &str) -> VaxError {
-        VaxError{details: msg.to_string()}
+        VaxError {
+            details: msg.to_string(),
+        }
     }
 }
 
 impl fmt::Display for VaxError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,"{}",self.details)
+        write!(f, "{}", self.details)
     }
 }
 
 impl Error for VaxError {
     fn description(&self) -> &str {
-       &self.details
+        &self.details
     }
 }
 
@@ -146,7 +148,6 @@ fn main() -> std::io::Result<()> {
             }
             Err(e) => println!("{:?}", e),
         }
-
     }
 
     Ok(())
