@@ -8,9 +8,8 @@ fn help() {
     println!("usage: cargo run <file> [file] [file] ...");
 }
 
-fn devax(input: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {
+fn devax(input: Vec<u8>) -> Vec<u8> {
     let mut clean = Vec::new();
-
     let mut mode: u8 = 0;
     let mut num: usize = 0;
     let mut size: u8 = 0;
@@ -19,9 +18,7 @@ fn devax(input: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {
     for i in input.iter(){
         if i == &zero {
             continue;
-        }
-
-        if mode == 0 {
+        } else if mode == 0 {
             num += *i as usize;
             size = *i;
             mode = 1;
@@ -36,12 +33,14 @@ fn devax(input: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {
         }
     }
     if clean.len() == num {
-        println!("...file OK!");
+        println!("file OK!");
     } else {
-        println!("...something went wrong!");
+        println!("something went wrong!");
+        clean.clear();
+        clean.truncate(0);
     }
 
-    Ok(clean)
+    clean
 }
 fn main() -> std::io::Result<()> {
     let mut args: Vec<String> = env::args().collect();
@@ -74,32 +73,30 @@ fn main() -> std::io::Result<()> {
                 continue;
             }
         };
-        let mut out = match File::create(&output) {
-            Ok(out) => out,
-            Err(e)  => {
-                match e.kind() {
-                    PermissionDenied => println!("Error! Permission denied."),
-                    k                => println!("Error! {:?}", k)
-                }
-                continue;
-            }
-        };
 
         let mut buf: Vec<u8> = Vec::new();
 
         file.read_to_end(&mut buf)?;
 
-        let xor = devax(buf)?;
+        /* run the de-vax-ify function */
+        let xor = devax(buf);
 
-/*
-        for i in 0..buf.len() {
-            xor.push(buf[i] ^ 0xff);
+        /* write out the de-vax-ified vector to file */
+        if xor.is_empty() != true {
+            let mut out = match File::create(&output) {
+                Ok(out) => out,
+                Err(e)  => {
+                    match e.kind() {
+                        PermissionDenied => println!("Error! Permission denied."),
+                        k                => println!("Error! {:?}", k)
+                    }
+                    continue;
+                }
+            };
+
+            out.write_all(&xor)?;
+            out.flush()?;
         }
-*/
-        out.write_all(&xor)?;
-        out.flush()?;
-
-        println!("Success!");
     }
     Ok(())
 }
