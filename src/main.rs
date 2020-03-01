@@ -4,13 +4,39 @@ use std::fs::File;
 use std::io::Write;
 use std::io::Read;
 
+use std::error::Error;
+use std::fmt;
+
+#[derive(Debug)]
+struct VaxError {
+    details: String
+}
+
+impl VaxError {
+    fn new(msg: &str) -> VaxError {
+        VaxError{details: msg.to_string()}
+    }
+}
+
+impl fmt::Display for VaxError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,"{}",self.details)
+    }
+}
+
+impl Error for VaxError {
+    fn description(&self) -> &str {
+       &self.details
+    }
+}
+
 /* print the usage */
 fn help() {
     println!("usage: cargo run <file> [file] [file] ...");
 }
 
 /* function to read in the original file and generate the correct file output */
-fn devax(input: Vec<u8>) -> Vec<u8> {
+fn devax(input: Vec<u8>) -> Result<Vec<u8>, VaxError> {
     let mut clean = Vec::new();
     let mut mode: u8 = 0;
     let mut num: usize = 0;
@@ -50,16 +76,10 @@ fn devax(input: Vec<u8>) -> Vec<u8> {
     /* if the bytes written equal the same number of bytes that we believe should
         be written, then the vaxuum-ing was a success, else a failure */
     if clean.len() == num {
-        println!("file OK!");
+        Ok(clean)
     } else {
-        /* if the conversion failed, empty the new file buffer */
-        println!("something went wrong!");
-        clean.clear();
-        clean.truncate(0);
+        Err(VaxError::new("idk.jpeg"))
     }
-
-    /* return the new file buffer */
-    clean
 }
 fn main() -> std::io::Result<()> {
     let mut args: Vec<String> = env::args().collect();
@@ -77,7 +97,7 @@ fn main() -> std::io::Result<()> {
     }
 
     /* for each file in the command line arguments ... */
-    while input.len() > 0 {
+    while !input.is_empty() {
         /* read the file name */
         let filename = input.pop().unwrap();
         print!("Cleaning up {}...", filename);
@@ -104,26 +124,29 @@ fn main() -> std::io::Result<()> {
         file.read_to_end(&mut buf)?;
 
         /* run the de-vax-ify function */
-        let xor = devax(buf);
-
-        /* write out the de-vax-ified vector to file */
-        if xor.is_empty() != true {
-            /* attempt to open the new cleaned file */
-            let mut out = match File::create(&output) {
-                Ok(out) => out,
-                Err(e)  => {
-                    match e.kind() {
-                        PermissionDenied => println!("Error! Permission denied."),
-                        k                => println!("Error! {:?}", k)
+        match devax(buf) {
+            Ok(xor) => {
+                /* write out the de-vax-ified vector to file */
+                println!("file OK!");
+                /* attempt to open the new cleaned file */
+                let mut out = match File::create(&output) {
+                    Ok(out) => out,
+                    Err(e)  => {
+                        match e.kind() {
+                            PermissionDenied => println!("Error! Permission denied."),
+                            k                => println!("Error! {:?}", k)
+                        }
+                        continue;
                     }
-                    continue;
-                }
-            };
+                };
 
-            /* write out the clean version of the file */
-            out.write_all(&xor)?;
-            out.flush()?;
+                /* write out the clean version of the file */
+                out.write_all(&xor)?;
+                out.flush()?;
+            }
+            Err(e) => println!("{:?}", e),
         }
+
     }
 
     Ok(())
