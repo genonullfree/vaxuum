@@ -77,7 +77,7 @@ fn main() -> std::io::Result<()> {
     }
 
     /* for each file in the command line arguments ... */
-    while input.len() > 0 {
+    while !input.is_empty() {
         /* read the file name */
         let filename = input.pop().unwrap();
         print!("Cleaning up {}...", filename);
@@ -107,7 +107,7 @@ fn main() -> std::io::Result<()> {
         let xor = devax(buf);
 
         /* write out the de-vax-ified vector to file */
-        if xor.is_empty() != true {
+        if !xor.is_empty() {
             /* attempt to open the new cleaned file */
             let mut out = match File::create(&output) {
                 Ok(out) => out,
